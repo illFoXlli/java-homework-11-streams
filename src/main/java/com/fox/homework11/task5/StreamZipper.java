@@ -13,22 +13,29 @@ public class StreamZipper {
         Iterator<T> it2 = second.iterator();
 
         Iterator<T> iterator = new Iterator<>() {
-            private boolean useFirst = true;
+            private final java.util.Queue<T> buffer = new java.util.ArrayDeque<>();
 
             @Override
             public boolean hasNext() {
-                return it1.hasNext() && it2.hasNext();
+                if (!buffer.isEmpty()) {
+                    return true;
+                }
+
+                if (it1.hasNext() && it2.hasNext()) {
+                    buffer.add(it1.next());
+                    buffer.add(it2.next());
+                    return true;
+                }
+
+                return false;
             }
 
             @Override
             public T next() {
-                if (useFirst) {
-                    useFirst = false;
-                    return it1.next();
-                } else {
-                    useFirst = true;
-                    return it2.next();
+                if (!hasNext()) {
+                    throw new IllegalStateException("No more elements");
                 }
+                return buffer.poll();
             }
         };
 
